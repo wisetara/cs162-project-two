@@ -11,12 +11,11 @@
 using namespace std;
 
 const int SIZE = 128;
-const int NOT_FOUND = -1;
 
 struct exerciseData
 {
-    char name[SIZE];
-    char date[SIZE];
+    char name[20];
+    char date[9];
     char note[SIZE];
     int time;
     int calories;
@@ -26,15 +25,15 @@ struct exerciseData
 int loadData(exerciseData exerciseList[]); // pass the array of structs, return total exercises read.
 int search(exerciseData exerciseList[], int count); // pass the array and the number of items in the array.
 void list(exerciseData exerciseList[], int count); // Print all data in the list.
-void logThisYo(char record, double minutesNumber, double &totalMinutes, double caloriesNumber, double &totalCalories, int &indexCount);
-void add(exerciseData exerciseList[], int count); // Add item to the list.
+void logThisYo(exerciseData exerciseList[], char record, char activity[], char date[], int minutesNumber, int caloriesNumber, int heartRate, char notes[], int &indexCount);
+void add(exerciseData exerciseList[], int &count); // Add item to the list.
 void dataCheck();
 
 int main ()
 {
 	char another = 'Y';
 	char answer = 'L';
-	int indexCount = 0;
+	int indexCount;
 	int searchCount;
 	exerciseData exerciseList[SIZE];
 
@@ -44,13 +43,13 @@ int main ()
 
 	while (answer != 'Q') {
 		cout << "What would you like to do? (L)ist all, (S)earch by name, (A)dd an exercise, or (Q)uit?" << endl;
-		// cin.clear();
 		cin.get(answer);
 		cin.ignore();
 		answer = static_cast<char>(toupper(answer));
 		switch (answer)
 		{
 			case 'L':
+				cout << "There are currently " << indexCount << " entries." << endl << endl;
 				list(exerciseList, indexCount);
 				break;
 			case 'S':
@@ -152,12 +151,17 @@ void list(exerciseData exerciseList[], int count) // Print all data in the list.
 			 << left << setw(16) << exerciseList[i].maxHeartRate << left << setw(SIZE) << exerciseList[i].note << endl;
 }
 
-void logThisYo(char record, double minutesNumber, double& totalMinutes, double caloriesNumber, double& totalCalories, int &indexCount)
+void logThisYo(exerciseData exerciseList[], char record, char activity[], char date[], int minutesNumber, int caloriesNumber, int heartRate, char notes[], int &indexCount)
 {
 	if (record == 'Y')
 	{
-		totalMinutes = totalMinutes + minutesNumber;
-		totalCalories = totalCalories + caloriesNumber;
+		int i = indexCount;
+		strcpy(exerciseList[i].name, activity);
+		strcpy(exerciseList[i].date, date);
+		exerciseList[i].time = minutesNumber;
+		exerciseList[i].calories = caloriesNumber;
+		exerciseList[i].maxHeartRate = heartRate;
+		strcpy(exerciseList[i].note, notes);
 		indexCount++;
 		cout << endl << "Your activity info has been recorded." << endl;
 	} else {
@@ -165,14 +169,9 @@ void logThisYo(char record, double minutesNumber, double& totalMinutes, double c
 	}
 }
 
-void add(exerciseData exerciseList[], int indexCount)
+void add(exerciseData exerciseList[], int& indexCount)
 {
 	char another = 'Y';
-	char activity[SIZE];
-	double minutesNumber;
-	double caloriesNumber;
-	double totalMinutes = 0.0;
-	double totalCalories = 0.0;
 	char record;
 
 	while (another != 'N')
@@ -181,8 +180,20 @@ void add(exerciseData exerciseList[], int indexCount)
 	  	{
 	    	cout << "Sorry, the array is full." << endl;
 	  	} else {
+	  		char activity[20];
+			char date[8];
+			char notes[SIZE];
+			int minutesNumber;
+			int caloriesNumber;
+			int heartRate;
+
 	  		cout << endl << "What exercise activity did you do?" << endl;
 			cin.getline(activity, 20);
+
+			// Date Section
+			cout << endl << "What was the date? (mm/dd/yy)" << endl;
+			cin.ignore();
+			cin.getline(date, 9);
 
 			// Minutes Section
 			cout << endl << "How many minutes?" << endl;
@@ -206,21 +217,36 @@ void add(exerciseData exerciseList[], int indexCount)
 				cin.ignore(5, '\n');
 		    }
 
-			cout << endl << "OK, you did " << activity << " for " << minutesNumber << " minutes, and burned " << caloriesNumber << " calories." << endl;
+		    // Max Heart Rate Section
+		    cout << endl << "What was your max heart rate?" << endl;
+			cin >> heartRate;
+			cin.ignore(5, '\n');
+			while(cin.fail() || caloriesNumber <= 0) {
+		    	dataCheck();
+		    	cout << endl << "What was your max heart rate?" << endl;
+				cin >> heartRate;
+				cin.ignore(5, '\n');
+		    }
 
-			cout << endl << "Record the activity time and calories? (Y/N)" << endl;
+		    // Notes section
+		    cout << endl << "Please add any notes." << endl;
+		    cin.getline(notes, SIZE);
+
+			cout << endl << "OK, you did " << activity << " for " << minutesNumber
+			     << " minutes, and burned " << caloriesNumber << " calories on "
+			     << date << " with a maximum heart rate of " << heartRate << "." << endl;
+
+			cout << endl << "Record the activity and pertinent info? Y/N" << endl;
 			cin >> record;
 			record = static_cast<char>(toupper(record));
-			logThisYo(record, minutesNumber, totalMinutes, caloriesNumber, totalCalories, indexCount);
+			logThisYo(exerciseList, record, activity, date, minutesNumber, caloriesNumber, heartRate, notes, indexCount);
 			cout << endl << "Would you like to enter another activity (Y/N)?" << endl;
 			cin >> another;
 			cin.ignore();
 			another = static_cast<char>(toupper(another));
 			if(another == 'N')
 			{
-				cout << endl << "Thank you for using the exercise tracking program. Here are your totals:\n" << endl;
-				cout << "Total exercise minutes: " << totalMinutes << endl;
-				cout << "Total exercise calories: " << totalCalories << endl << endl;
+				cout << endl << "Thank you for using the exercise tracking program." << endl;
 			}
 		}
   	}
